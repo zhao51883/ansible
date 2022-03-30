@@ -1,0 +1,40 @@
+---
+- name: Install Docker and Docker-Compose
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt repo and cache on all Debian/Ubuntu boxes
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+    - name: Upgrade all packages on servers
+      apt:
+        upgrade: dist
+        force_apt_get: yes
+    - name: Install a list of docker dependency packages
+      apt:
+        pkg:
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+    - name: Add Docker GPG key
+      apt_key: 
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Add apt repository for stable version
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+    - name: Install Docker
+      apt:
+        pkg:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+    - name: Download docker-compose {{ docker_compose_version }}
+      get_url:
+        url : https://github.com/docker/compose/releases/download/1.29.2/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '+x'
